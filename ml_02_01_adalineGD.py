@@ -41,7 +41,7 @@ class AdalineGD(object):
 
         for _ in range(self.n_iter):
             # 活性化関数の出力の計算 wTx
-            output = self.net_inp78ut(X)
+            output = self.net_input(X)
             # 誤差 yi - phi(zi)の計算
             errors = (y - output)
             # wm の更新
