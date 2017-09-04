@@ -45,3 +45,13 @@ def read_csv(path, url=None):
     if url:
         urlReq.urlretrieve(url, "{0}".format(path))
         return pd.read_csv(path, header=None)
+
+
+def generateDataSet():
+    np.random.seed(0)
+    X_xor = np.random.randn(200, 2)
+    y_xor = np.logical_xor(X_xor[:, 0] > 0, X_xor[:, 1] < 0)
+    y_xor = np.where(y_xor, 1, -1)
+
+    return (X_xor, y_xor)
+
