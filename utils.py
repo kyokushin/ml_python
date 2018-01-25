@@ -4,6 +4,8 @@ import pandas as pd
 from matplotlib.colors import ListedColormap
 import urllib.request as urlReq
 import os
+import re
+from nltk.stem.porter import PorterStemmer
 
 
 def plot_decision_regions(X, y, classifier, test_idx=None, resolution=0.02):
@@ -38,13 +40,13 @@ def plot_decision_regions(X, y, classifier, test_idx=None, resolution=0.02):
                     s=55, label='test set')
 
 
-def read_csv(path, url=None):
+def read_csv(path, url=None, sep=None):
     if os.path.exists(path):
-        return pd.read_csv(path, header=None)
+        return pd.read_csv(path, header=None, sep=sep)
 
     if url:
         urlReq.urlretrieve(url, "{0}".format(path))
-        return pd.read_csv(path, header=None)
+        return pd.read_csv(path, header=None, sep=sep)
 
 
 def generateDataSet():
@@ -55,3 +57,47 @@ def generateDataSet():
 
     return (X_xor, y_xor)
 
+def preprocessor(text):
+    text = re.sub('<[^>]*>','', text)
+    emoticons = re.findall('(?::|;|=)(?:-)?(?:\)|\(|D|P)', text)
+    text = re.sub('[\W]+', ' ', text.lower()) + ''.join(emoticons).replace('-', '')
+    return text
+
+def tokenizer(text):
+    return text.split()
+
+porter = PorterStemmer()
+
+def tokenizer_porter(text):
+    return [porter.stem(word) for word in text.split()]
+
+class LinearRegressionGD(object):
+
+    def __init__(self, eta=0.001, n_iter=20):
+        self.eta = eta
+        self.n_iter = n_iter
+
+    def fit(self, X, y):
+        self.w_ = np.zeros((1 + X.shape[0], 1))
+        self.cost_ = []
+
+        for i in range(self.n_iter):
+            output = self.net_input(X)
+            errors = (y - output)
+            self.w_[1:] += self.eta * X.T.dot(errors)
+            self.w_[0] += self.eta * errors.sum()
+
+            cost = (errors**2).sum() / 2.0
+            self.cost_.append(cost)
+
+        return self
+
+    def net_input(self, X):
+        return X * self.w_[1:] + self.w_[0]
+
+    def predict(self, X):
+        return self.net_input(X)
+
+def lin_regplot(X, y, model):
+    plt.scatter(X, y, c='blue')
+    plt.plot(X, model.predict(X), color='red')
